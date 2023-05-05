@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.Collections;
+
 @Service
 public class RedisService {
 
@@ -25,4 +27,35 @@ public class RedisService {
         client.close();
         return value;
     }
+
+    public boolean stockDeductValidation(String key){
+        try {
+            Jedis client = jedisPool.getResource();
+            String script = "if redis.call('exists', KEYS[1]) == 1 then\n" +
+                    "    local stock = tonumber(redis.call('get', KEYS[1]))\n" +
+                    "    if (stock <= 0) then\n" +
+                    "        return -1\n" +
+                    "    end;\n" +
+                    "\n" +
+                    "    redis.call('decr', KEYS[1]);\n" +
+                    "    return stock - 1;\n" +
+                    "end;\n" +
+                    "\n" +
+                    "return -1;";
+            Long stock = (Long) client.eval(script, Collections.singletonList(key), Collections.emptyList());
+
+            if (stock < 0){
+                System.out.println("Sorry! Sold Out!");
+                return false;
+            }
+
+            System.out.println("Congratulations! You get it!");
+            return true;
+        } catch (Throwable throwable) {
+            System.out.println("Failed to deduct inventory " + throwable.toString());
+            return false;
+        }
+
+    }
+
 }
