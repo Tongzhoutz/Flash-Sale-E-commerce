@@ -56,17 +56,17 @@
 
         </javaClientGenerator>
 
-        <table schema="" tableName="seckill_activity"
+        <table schema="" tableName="seckill_order"
 
-               domainObjectName="SeckillActivity" enableCountByExample="false"
+               domainObjectName="Order" enableCountByExample="false"
 
                enableDeleteByExample="false" enableSelectByExample="false"
 
                enableUpdateByExample="false" selectByExampleQueryId="false"></table>
 
-        <table schema="" tableName="seckill_commodity"
+        <table schema="" tableName="seckill_user"
 
-               domainObjectName="SeckillCommodity" enableCountByExample="false"
+               domainObjectName="User" enableCountByExample="false"
 
                enableDeleteByExample="false" enableSelectByExample="false"
 

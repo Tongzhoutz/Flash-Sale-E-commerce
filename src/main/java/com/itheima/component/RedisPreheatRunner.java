@@ -3,15 +3,16 @@ package com.itheima.component;
 import com.itheima.db.dao.SeckillActivityDao;
 import com.itheima.db.po.SeckillActivity;
 import com.itheima.service.RedisService;
-import jakarta.annotation.Resource;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @Component
 public class RedisPreheatRunner implements ApplicationRunner {
+
 
     @Resource
     private SeckillActivityDao seckillActivityDao;
