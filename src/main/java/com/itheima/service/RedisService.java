@@ -1,5 +1,6 @@
 package com.itheima.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
@@ -8,6 +9,7 @@ import redis.clients.jedis.JedisPool;
 import javax.annotation.Resource;
 import java.util.Collections;
 
+@Slf4j
 @Service
 public class RedisService {
 
@@ -58,4 +60,26 @@ public class RedisService {
 
     }
 
+    public void addLimitMember(long activityId, long userId) {
+        Jedis jedisClient = jedisPool.getResource();
+        jedisClient.sadd("seckillActivity_users:" + activityId, String.valueOf(userId));
+    }
+
+    public boolean isInLimitMember(long activityId, long userId) {
+        Jedis jedisClient = jedisPool.getResource();
+        boolean sismember = jedisClient.sismember("seckillActivity_users:" + activityId, String.valueOf(userId));
+        log.info("userId:{} activityId:{}  在已购名单中:{}", activityId, userId, sismember);
+        return sismember;
+    }
+
+    public void removeLimitMember(long activityId, long userId) {
+        Jedis jedisClient = jedisPool.getResource();
+        jedisClient.srem("seckillActivity_users:" + activityId, String.valueOf(userId));
+    }
+
+    public void revertStock(String key) {
+        Jedis jedisClient = jedisPool.getResource();
+        jedisClient.incr(key);
+        jedisClient.close();
+    }
 }

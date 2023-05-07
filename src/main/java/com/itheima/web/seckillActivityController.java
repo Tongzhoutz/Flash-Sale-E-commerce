@@ -115,9 +115,7 @@ public class seckillActivityController {
             stockValidationResult = seckillActivityService.seckillStockValidator(seckillActivityId);
             // System.out.println("helll" + stockValidationResult);
             if (stockValidationResult) {
-                System.out.println("到了吗?");
                 Order order = seckillActivityService.createOrder(seckillActivityId, userId);
-                System.out.println("order"+ order);
                 modelAndView.addObject("resultInfo", "You got it, order is generating..., order ID" + order.getOrderNo() );
                 modelAndView.addObject("orderNo", order.getOrderNo());
             } else {
@@ -148,5 +146,13 @@ public class seckillActivityController {
             modelAndView.setViewName("order_wait");
         }
         return modelAndView;
+    }
+
+    @RequestMapping("/seckill/payOrder/{orderNo}")
+    public String payOrder(
+            @PathVariable String orderNo
+    ) throws Exception {
+        seckillActivityService.payOrderProcess(orderNo);
+        return "redirect:/seckill/orderQuery/" + orderNo;
     }
 }

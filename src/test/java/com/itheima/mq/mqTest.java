@@ -15,4 +15,9 @@ public class mqTest {
     public void sendMQTest() throws Exception {
         service.sendMessage("test", "Hello, world!" + new Date().toString());
     }
+
+    @Test
+    public void sendDelayedMQTest() throws Exception {
+        service.sendDelayMessage("test_delayed", "hello, word Delayed!" + new Date().toString(), 5);
+    }
 }
