@@ -90,4 +90,41 @@ public class RedisService {
         jedisClient.incr(key);
         jedisClient.close();
     }
+
+    /*
+    *  Get distributed lock
+    *  @param lockKey
+    *  @param requestId
+    *  @param expireTime
+    *  @return
+    * */
+
+    public boolean tryGetDitributedLock(String lockKey, String requestId, int expireTime) {
+        Jedis jedisClient = jedisPool.getResource();
+        String result = jedisClient.set(lockKey, requestId, "NX", "PX", expireTime);
+        jedisClient.close();
+        if ("OK".equals(result)) {
+            return true;
+        }
+        return false;
+    }
+
+    /*
+     *  release distributed lock
+     *  @param lockKey
+     *  @param requestId
+     *  @return
+     * */
+
+    public boolean releaseDistributedLock(String lockKey, String requestId) {
+        Jedis jedisClient = jedisPool.getResource();
+        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        Long result = (Long) jedisClient.eval(script, Collections.singletonList(lockKey), Collections.singletonList(requestId));
+        jedisClient.close();
+        if (result == 1L) {
+            return true;
+        }
+        return false;
+    }
+
 }
