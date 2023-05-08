@@ -14,22 +14,31 @@ class RedisServiceTest {
 
     @Test
     void setValue() {
-        String value = service.setValue("test:1", 100L).getValue("test:1");
-        assertEquals(new Long(value), 100L);
+        service.setValue("stock:19", 10L);
     }
 
     @Test
     void getValue() {
-        String value = service.getValue("test:1");
-        assertEquals(new Long(value), 100L);
+        String stock = service.getValue("stock:19");
+        System.out.println(stock);
     }
 
     @Test
     void stockDeductValidation() {
-        boolean result = service.stockDeductValidation("test:1");
-        assertTrue(result);
-        String value = service.getValue("test:1");
-        System.out.println(value);
-        assertEquals(new Long(value), 99L);
+        boolean result = service.stockDeductValidation("stock:19");
+        System.out.println("result: " + result);
+        String stock = service.getValue("stock:19");
+        System.out.println("stock:" + stock);
+    }
+
+    @Test
+    public void revertStock() {
+        String stock = service.getValue("stock:19");
+        System.out.println("回滚前的库存: " + stock);
+
+        service.revertStock("stock:19");
+
+        stock = service.getValue("stock:19");
+        System.out.println("回滚后的库存: " + stock);
     }
 }

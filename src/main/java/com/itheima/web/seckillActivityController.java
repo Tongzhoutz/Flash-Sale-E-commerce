@@ -1,14 +1,18 @@
 package com.itheima.web;
 
+import com.alibaba.fastjson.JSON;
 import com.itheima.db.dao.OrderDao;
 import com.itheima.db.dao.SeckillActivityDao;
 import com.itheima.db.dao.SeckillCommodityDao;
 import com.itheima.db.po.Order;
 import com.itheima.db.po.SeckillActivity;
 import com.itheima.db.po.SeckillCommodity;
+import com.itheima.service.RedisService;
 import com.itheima.service.SeckillActivityService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +42,9 @@ public class seckillActivityController {
 
     @Resource
     private OrderDao orderDao;
+
+    @Autowired
+    private RedisService redisService;
 
     @RequestMapping("/addSeckillActivity")
     public String addSeckillActivity(){
@@ -92,6 +99,23 @@ public class seckillActivityController {
                            ) {
         SeckillActivity seckillActivity = seckillActivityDao.querySeckillActivityById(seckillActivityId);
         SeckillCommodity seckillCommodity = seckillCommodityDao.querySeckillCommodityById(seckillActivity.getCommodityId());
+        // cache preheating: seckillActivity and commodity info.
+        String seckillActivityInfo = redisService.getValue("seckillActivity:" + seckillActivityId);
+        if (StringUtils.isNotEmpty(seckillActivityInfo)) {
+            log.info("redis缓存数据:" + seckillActivityInfo);
+            seckillActivity = JSON.parseObject(seckillActivityInfo, SeckillActivity.class);
+        } else {
+            seckillActivity = seckillActivityDao.querySeckillActivityById(seckillActivityId);
+        }
+
+        String seckillCommodityInfo = redisService.getValue("seckillCommodity:" + seckillActivity.getCommodityId());
+        if (StringUtils.isNotEmpty(seckillCommodityInfo)) {
+            log.info("redis缓存数据: " + seckillCommodityInfo);
+            seckillCommodity = JSON.parseObject(seckillActivityInfo, SeckillCommodity.class);
+        } else {
+            seckillCommodity = seckillCommodityDao.querySeckillCommodityById(seckillActivity.getCommodityId());
+        }
+
         resultMap.put("seckillActivity", seckillActivity);
         resultMap.put("seckillCommodity", seckillCommodity);
         resultMap.put("seckillPrice", seckillActivity.getSeckillPrice());

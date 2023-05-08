@@ -3,11 +3,14 @@ package com.itheima.service;
 import com.alibaba.fastjson.JSON;
 import com.itheima.db.dao.OrderDao;
 import com.itheima.db.dao.SeckillActivityDao;
+import com.itheima.db.dao.SeckillCommodityDao;
 import com.itheima.db.po.Order;
 import com.itheima.db.po.SeckillActivity;
+import com.itheima.db.po.SeckillCommodity;
 import com.itheima.mq.RocketMQService;
 import com.itheima.util.SnowFlake;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -18,10 +21,13 @@ import java.util.Date;
 public class SeckillActivityService {
 
     @Resource
-    private RedisService service;
+    private RedisService redisService;
 
     @Resource
     private SeckillActivityDao seckillActivityDao;
+
+    @Autowired
+    private SeckillCommodityDao seckillCommodityDao;
 
     @Resource
     private RocketMQService rocketMQService;
@@ -33,7 +39,7 @@ public class SeckillActivityService {
 
     public boolean seckillStockValidator(long activityId){
         String key = "stock:" + activityId;
-        return service.stockDeductValidation(key);
+        return redisService.stockDeductValidation(key);
     }
 
     public Order createOrder(long seckillActivityId, long userId) throws Exception {
@@ -53,6 +59,21 @@ public class SeckillActivityService {
         return order;
 
     }
+
+    /**
+     *  Cache seckillActivity and seckillCommodity info into reds
+     *  @param seckillActivityId
+     *
+     *
+     */
+    public void pushSeckillInfoToRedis(long seckillActivityId) {
+        SeckillActivity seckillActivity = seckillActivityDao.querySeckillActivityById(seckillActivityId);
+        redisService.setValue("seckillActivity:" + seckillActivityId, JSON.toJSONString(seckillActivity));
+
+        SeckillCommodity seckillCommodity = seckillCommodityDao.querySeckillCommodityById(seckillActivity.getCommodityId());
+        redisService.setValue("seckillCommodity:" + seckillActivity.getCommodityId(), JSON.toJSONString(seckillCommodity));
+    }
+
 
     public void payOrderProcess(String orderNo) {
         Order order = orderDao.queryOrder(orderNo);

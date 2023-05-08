@@ -16,11 +16,16 @@ public class RedisService {
     @Resource
     private JedisPool jedisPool;
 
-    public RedisService setValue(String key, Long value){
+    public void setValue(String key, Long value){
         Jedis client = jedisPool.getResource();
         client.set(key, value.toString());
         client.close();
-        return this;
+    }
+
+    public void setValue(String key, String value) {
+        Jedis jedisClient = jedisPool.getResource();
+        jedisClient.set(key, value);
+        jedisClient.close();
     }
 
     public String getValue(String key){
@@ -63,11 +68,13 @@ public class RedisService {
     public void addLimitMember(long activityId, long userId) {
         Jedis jedisClient = jedisPool.getResource();
         jedisClient.sadd("seckillActivity_users:" + activityId, String.valueOf(userId));
+        jedisClient.close();
     }
 
     public boolean isInLimitMember(long activityId, long userId) {
         Jedis jedisClient = jedisPool.getResource();
         boolean sismember = jedisClient.sismember("seckillActivity_users:" + activityId, String.valueOf(userId));
+        jedisClient.close();
         log.info("userId:{} activityId:{}  在已购名单中:{}", activityId, userId, sismember);
         return sismember;
     }
@@ -75,6 +82,7 @@ public class RedisService {
     public void removeLimitMember(long activityId, long userId) {
         Jedis jedisClient = jedisPool.getResource();
         jedisClient.srem("seckillActivity_users:" + activityId, String.valueOf(userId));
+        jedisClient.close();
     }
 
     public void revertStock(String key) {
