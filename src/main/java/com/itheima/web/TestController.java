@@ -21,7 +21,7 @@ public class TestController {
 
 
     @ResponseBody
-    @RequestMapping("hello")
+    @RequestMapping("/hello")
     public String hello() {
         String result;
 
@@ -40,18 +40,12 @@ public class TestController {
 
         List<FlowRule> rules = new ArrayList<>();
 
-        FlowRule rule = new FlowRule();
-
-        rule.setResource("seckills");
-        rule.setGrade(RuleConstant.FLOW_GRADE_QPS);
-        rule.setCount(3);
 
         FlowRule rule2 = new FlowRule();
-        rule2.setGrade(RuleConstant.FLOW_GRADE_QPS);
-        rule.setCount(3);
         rule2.setResource("HelloResource");
+        rule2.setGrade(RuleConstant.FLOW_GRADE_QPS);
+        rule2.setCount(1);
 
-        rules.add(rule);
         rules.add(rule2);
 
         FlowRuleManager.loadRules(rules);

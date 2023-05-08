@@ -1,5 +1,11 @@
 package com.itheima.web;
 
+import com.alibaba.csp.sentinel.Entry;
+import com.alibaba.csp.sentinel.SphU;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.alibaba.csp.sentinel.slots.block.RuleConstant;
+import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
+import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import com.alibaba.fastjson.JSON;
 import com.itheima.db.dao.OrderDao;
 import com.itheima.db.dao.SeckillActivityDao;
@@ -19,10 +25,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -87,9 +95,31 @@ public class seckillActivityController {
     public String activityList(
              Map<String, Object> resultMap
     ) {
-        List<SeckillActivity> seckillActivities = seckillActivityDao.querySeckillActivitysByStatus(1);
-        resultMap.put("seckillActivities", seckillActivities);
-        return "seckill_activity";
+        try(Entry entry = SphU.entry("seckills")) {
+            List<SeckillActivity> seckillActivities = seckillActivityDao.querySeckillActivitysByStatus(1);
+            resultMap.put("seckillActivities", seckillActivities);
+            return "seckill_activity";
+        }catch (BlockException ex) {
+            log.error("遭遇限流！");
+            return "wait";
+        }
+    }
+
+    @PostConstruct
+    public void seckillsFlow() {
+
+        List<FlowRule> rules = new ArrayList<>();
+
+        FlowRule rule = new FlowRule();
+        rule.setResource("seckills");
+        rule.setGrade(RuleConstant.FLOW_GRADE_QPS);
+        rule.setCount(1);
+
+
+        rules.add(rule);
+
+        FlowRuleManager.loadRules(rules);
+
     }
 
     @RequestMapping("/item/{seckillActivityId}")
