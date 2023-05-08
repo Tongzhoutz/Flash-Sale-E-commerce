@@ -1,6 +1,5 @@
 package com.itheima.service;
 
-import com.alibaba.fastjson.JSON;
 import com.itheima.db.dao.OrderDao;
 import com.itheima.db.dao.SeckillActivityDao;
 import com.itheima.db.dao.SeckillCommodityDao;
